@@ -5,8 +5,8 @@
 
 const AirtableAPI = {
   // Configuration Airtable
-  TOKEN: localStorage.getItem('AIRTABLE_TOKEN') || 'YOUR_AIRTABLE_TOKEN',
-  BASE: localStorage.getItem('AIRTABLE_BASE') || 'YOUR_AIRTABLE_BASE',
+  TOKEN: 'patIOvpOvD6VAwXPh.9c12252562bb5413fb091aa1a115819e47a4bb3806167634a6e257cdf90f4179',
+  BASE: 'appUO3FJPg9Ou8rs6',
   
   // Noms des tables (doivent correspondre exactement aux tables créées dans Airtable)
   TABLES: {
