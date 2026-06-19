@@ -6,6 +6,21 @@
     <title>MyAssist - Gestion de tâches assistante de direction</title>
     <link rel="stylesheet" href="dist/output.css">
     <link rel="stylesheet" href="assets/css/design-tokens.css">
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/airtable.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Vérifier si l'utilisateur est connecté
+        const user = Auth.getCurrentUser();
+        
+        if (user) {
+            // Rediriger vers le dashboard si connecté
+            window.location.href = 'dashboard.html';
+        } else {
+            // Rediriger vers la page de connexion si non connecté
+            window.location.href = 'login.html';
+        }
+    </script>
 </head>
 <body class="min-h-screen flex items-center justify-center" style="background-image: url('assets/img/v882batch2-kul-03.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
     <div class="bg-white rounded-[26px] shadow-card p-8 w-full max-w-md mx-4 text-center">
@@ -61,18 +76,9 @@
             </div>
         </div>
 
-        <script src="assets/js/storage.js"></script>
-    <script src="assets/js/airtable.js"></script>
-    <script src="assets/js/auth.js"></script>
-    <script>
-        // Vérifier si l'utilisateur est connecté
-        const user = Auth.getCurrentUser();
-        
-        if (user) {
-            // Rediriger vers le dashboard si connecté
-            window.location.href = 'dashboard.html';
-        } else {
-            // Rediriger vers la page de connexion si non connecté
-            window.location.href = 'login.html';
-        }
-    </script>
+        <div class="mt-8 text-xs text-[#9999B3]">
+            <p>Version 1.0.0</p>
+        </div>
+    </div>
+</body>
+</html>
