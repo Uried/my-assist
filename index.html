@@ -61,9 +61,18 @@
             </div>
         </div>
 
-        <div class="mt-8 text-xs text-[#9999B3]">
-            <p>Version 1.0.0</p>
-        </div>
-    </div>
-</body>
-</html>
+        <script src="assets/js/storage.js"></script>
+    <script src="assets/js/airtable.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Vérifier si l'utilisateur est connecté
+        const user = Auth.getCurrentUser();
+        
+        if (user) {
+            // Rediriger vers le dashboard si connecté
+            window.location.href = 'dashboard.html';
+        } else {
+            // Rediriger vers la page de connexion si non connecté
+            window.location.href = 'login.html';
+        }
+    </script>
