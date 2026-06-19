@@ -1,0 +1,16 @@
+{
+  "name": "myassist",
+  "version": "1.0.0",
+  "description": "Application de gestion des tâches d'une assistante de Direction",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tailwindcss -i ./assets/css/input.css -o ./dist/output.css --watch",
+    "build": "tailwindcss -i ./assets/css/input.css -o ./dist/output.css"
+  },
+  "keywords": ["gestion", "assistante", "tâches"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

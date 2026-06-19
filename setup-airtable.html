@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Airtable - MyAssist</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; margin-top: 0; }
+    .status { padding: 15px; border-radius: 4px; margin: 10px 0; }
+    .status-ok { background: #e8f5e9; color: #2e7d32; }
+    .status-error { background: #ffebee; color: #c62828; }
+    .status-warn { background: #fff3e0; color: #ef6c00; }
+    .table-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    .table-card.missing { border-left: 4px solid #f44336; }
+    .table-card.exists { border-left: 4px solid #4caf50; }
+    button {
+      background: #7C6FF7;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover { background: #6b5fd6; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .field-list { margin-left: 20px; }
+    .field-list li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Setup Airtable - MyAssist</h1>
+    
+    <div id="status" class="status status-warn">
+      Cliquez sur "Vérifier les tables" pour commencer
+    </div>
+
+    <button onclick="checkTables()">🔍 Vérifier les tables</button>
+    <button onclick="createTables()">🚀 Créer les tables automatiquement</button>
+    <button onclick="showInstructions()">📋 Afficher les instructions</button>
+
+    <div id="results"></div>
+    <div id="instructions" style="display:none; margin-top: 20px;"></div>
+  </div>
+
+  <script>
+    const AT_TOKEN = localStorage.getItem('AIRTABLE_TOKEN') || 'YOUR_AIRTABLE_TOKEN';
+    const AT_BASE = localStorage.getItem('AIRTABLE_BASE') || 'YOUR_AIRTABLE_BASE';
+
+    const REQUIRED_TABLES = {
+      'Courriers': [
+        { name: 'reference', type: 'singleLineText' },
+        { name: 'type', type: 'singleSelect', options: ['entrant', 'sortant'] },
+        { name: 'objet', type: 'singleLineText' },
+        { name: 'expediteur', type: 'singleLineText' },
+        { name: 'destinataire', type: 'singleLineText' },
+        { name: 'service', type: 'singleLineText' },
+        { name: 'date', type: 'date', isDateTime: false },
+        { name: 'priorite', type: 'singleSelect', options: ['normale', 'haute', 'urgente'] },
+        { name: 'statut', type: 'singleSelect', options: ['reçu', 'en cours', 'traité', 'archivé'] },
+        { name: 'observations', type: 'multilineText' },
+        { name: 'createdAt', type: 'dateTime', isDateTime: true }
+      ],
+      'Rendez-vous': [
+        { name: 'titre', type: 'singleLineText' },
+        { name: 'contact', type: 'singleLineText' },
+        { name: 'date', type: 'date', isDateTime: false },
+        { name: 'heureDebut', type: 'singleLineText' },
+        { name: 'heureFin', type: 'singleLineText' },
+        { name: 'lieu', type: 'singleLineText' },
+        { name: 'motif', type: 'singleLineText' },
+        { name: 'statut', type: 'singleSelect', options: ['prévu', 'confirmé', 'annulé', 'terminé'] },
+        { name: 'notes', type: 'multilineText' },
+        { name: 'createdAt', type: 'dateTime', isDateTime: true }
+      ],
+      'Contacts': [
+        { name: 'nom', type: 'singleLineText' },
+        { name: 'prenom', type: 'singleLineText' },
+        { name: 'organisation', type: 'singleLineText' },
+        { name: 'fonction', type: 'singleLineText' },
+        { name: 'telephone', type: 'phoneNumber' },
+        { name: 'email', type: 'email' },
+        { name: 'adresse', type: 'singleLineText' },
+        { name: 'typeContact', type: 'singleSelect', options: ['client', 'fournisseur', 'partenaire', 'autre'] },
+        { name: 'notes', type: 'multilineText' }
+      ],
+      'Documents': [
+        { name: 'titre', type: 'singleLineText' },
+        { name: 'categorie', type: 'singleSelect', options: ['Juridique', 'Administratif', 'Commercial', 'Technique', 'Autre'] },
+        { name: 'description', type: 'multilineText' },
+        { name: 'nomFichier', type: 'singleLineText' },
+        { name: 'typeFichier', type: 'singleSelect', options: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'autre'] },
+        { name: 'statut', type: 'singleSelect', options: ['actif', 'archivé', 'corbeille'] },
+        { name: 'createdAt', type: 'dateTime', isDateTime: true }
+      ],
+      'Utilisateurs': [
+        { name: 'nom', type: 'singleLineText' },
+        { name: 'email', type: 'email' },
+        { name: 'password', type: 'singleLineText' },
+        { name: 'role', type: 'singleSelect', options: ['admin', 'assistante', 'directeur'] },
+        { name: 'statut', type: 'singleSelect', options: ['actif', 'inactif'] },
+        { name: 'createdAt', type: 'dateTime', isDateTime: true }
+      ]
+    };
+
+    async function checkTables() {
+      const resultsDiv = document.getElementById('results');
+      const statusDiv = document.getElementById('status');
+      
+      resultsDiv.innerHTML = '<p>⏳ Vérification en cours...</p>';
+      statusDiv.className = 'status status-warn';
+      statusDiv.textContent = 'Vérification des tables Airtable...';
+
+      try {
+        // Récupérer les schémas de la base
+        const response = await fetch(`https://api.airtable.com/v0/meta/bases/${AT_BASE}/tables`, {
+          headers: {
+            'Authorization': `Bearer ${AT_TOKEN}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const existingTables = data.tables.map(t => t.name);
+
+        let html = '<h2>📊 Résultat de la vérification</h2>';
+        let allExist = true;
+
+        for (const [tableName, fields] of Object.entries(REQUIRED_TABLES)) {
+          const exists = existingTables.includes(tableName);
+          allExist = allExist && exists;
+
+          html += `
+            <div class="table-card ${exists ? 'exists' : 'missing'}">
+              <h3>${exists ? '✅' : '❌'} ${tableName}</h3>
+              <p>Statut: ${exists ? 'Table existe' : 'Table manquante'}</p>
+              ${!exists ? `<p class="status-error">⚠️ Cette table doit être créée manuellement dans Airtable</p>` : ''}
+            </div>
+          `;
+        }
+
+        if (allExist) {
+          statusDiv.className = 'status status-ok';
+          statusDiv.textContent = '✅ Toutes les tables existent ! Vous pouvez maintenant intégrer Airtable dans MyAssist.';
+        } else {
+          statusDiv.className = 'status status-error';
+          statusDiv.textContent = '❌ Certaines tables manquent. Veuillez les créer manuellement dans Airtable.';
+        }
+
+        resultsDiv.innerHTML = html;
+
+      } catch (error) {
+        statusDiv.className = 'status status-error';
+        statusDiv.textContent = `❌ Erreur: ${error.message}`;
+        resultsDiv.innerHTML = `<p class="status-error">Erreur lors de la vérification: ${error.message}</p>`;
+      }
+    }
+
+    async function createTables() {
+      const resultsDiv = document.getElementById('results');
+      const statusDiv = document.getElementById('status');
+      
+      resultsDiv.innerHTML = '<p>⏳ Création des tables en cours...</p>';
+      statusDiv.className = 'status status-warn';
+      statusDiv.textContent = 'Création des tables Airtable...';
+
+      try {
+        // D'abord vérifier les tables existantes
+        const schemaResponse = await fetch(`https://api.airtable.com/v0/meta/bases/${AT_BASE}/tables`, {
+          headers: { 'Authorization': `Bearer ${AT_TOKEN}` }
+        });
+
+        if (!schemaResponse.ok) {
+          throw new Error(`Erreur ${schemaResponse.status}: ${schemaResponse.statusText}`);
+        }
+
+        const schemaData = await schemaResponse.json();
+        const existingTables = schemaData.tables.map(t => t.name);
+
+        let html = '<h2>🚀 Création des tables</h2>';
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const [tableName, fields] of Object.entries(REQUIRED_TABLES)) {
+          if (existingTables.includes(tableName)) {
+            html += `<div class="table-card exists"><h3>⏭️ ${tableName}</h3><p>Table existe déjà, ignorée</p></div>`;
+            successCount++;
+            continue;
+          }
+
+          try {
+            // Construire le schéma de la table
+            const tableSchema = {
+              name: tableName,
+              fields: fields.map(field => {
+                const fieldDef = { name: field.name, type: field.type };
+                
+                if (field.options) {
+                  fieldDef.options = { choices: field.options.map(opt => ({ name: opt })) };
+                }
+                
+                if (field.type === 'date') {
+                  fieldDef.options = {
+                    dateFormat: { name: 'local' }
+                  };
+                }
+                
+                if (field.type === 'dateTime') {
+                  fieldDef.options = {
+                    timeZone: 'Europe/Paris',
+                    dateFormat: { name: 'local' },
+                    timeFormat: { name: '24hour' }
+                  };
+                }
+                
+                return fieldDef;
+              })
+            };
+
+            // Créer la table
+            const createResponse = await fetch(`https://api.airtable.com/v0/meta/bases/${AT_BASE}/tables`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${AT_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(tableSchema)
+            });
+
+            if (!createResponse.ok) {
+              const errorData = await createResponse.json();
+              throw new Error(JSON.stringify(errorData));
+            }
+
+            const createdTable = await createResponse.json();
+            html += `<div class="table-card exists"><h3>✅ ${tableName}</h3><p>Table créée avec succès (ID: ${createdTable.id})</p></div>`;
+            successCount++;
+
+          } catch (error) {
+            html += `<div class="table-card missing"><h3>❌ ${tableName}</h3><p>Erreur: ${error.message}</p></div>`;
+            errorCount++;
+          }
+        }
+
+        if (errorCount === 0) {
+          statusDiv.className = 'status status-ok';
+          statusDiv.textContent = `✅ Succès ! ${successCount} tables créées/prêtes.`;
+        } else {
+          statusDiv.className = 'status status-warn';
+          statusDiv.textContent = `⚠️ ${successCount} tables OK, ${errorCount} erreurs. Vérifiez les permissions du token.`;
+        }
+
+        resultsDiv.innerHTML = html;
+
+      } catch (error) {
+        statusDiv.className = 'status status-error';
+        statusDiv.textContent = `❌ Erreur: ${error.message}`;
+        resultsDiv.innerHTML = `<p class="status-error">Erreur lors de la création: ${error.message}</p>`;
+      }
+    }
+
+    function showInstructions() {
+      const instructionsDiv = document.getElementById('instructions');
+      instructionsDiv.style.display = 'block';
+
+      let html = '<h2>📋 Instructions pour créer les tables</h2>';
+      html += '<p>L\'API Airtable ne permet pas de créer des tables automatiquement. Vous devez les créer manuellement :</p>';
+      html += '<ol>';
+      html += '<li>Allez sur <a href="https://airtable.com" target="_blank">https://airtable.com</a></li>';
+      html += '<li>Ouvrez votre base (ID: apprY6dqfVB2K6g67)</li>';
+      html += '<li>Cliquez sur le bouton "+" pour créer une nouvelle table</li>';
+      html += '<li>Nommez la table et ajoutez les champs listés ci-dessous</li>';
+      html += '</ol>';
+
+      for (const [tableName, fields] of Object.entries(REQUIRED_TABLES)) {
+        html += `
+          <div class="table-card">
+            <h3>📁 Table: ${tableName}</h3>
+            <ul class="field-list">
+        `;
+        for (const field of fields) {
+          html += `<li><strong>${field.name}</strong> (${field.type})${field.options ? ` - Options: ${field.options.join(', ')}` : ''}</li>`;
+        }
+        html += '</ul></div>';
+      }
+
+      instructionsDiv.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

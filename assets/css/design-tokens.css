@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* === BACKGROUNDS === */
+  --bg-page:         #F0F0F5;   /* fond global de l'app, gris bleuté très clair */
+  --bg-card:         #FFFFFF;   /* fond des cartes claires */
+  --bg-card-dark:    #1B1B2F;   /* fond des cartes sombres (dark mode partiel) */
+  --bg-card-darker:  #12121E;   /* fond secondaire sombre */
+  --bg-input:        #F5F5FA;   /* fond des inputs et zones de saisie */
+
+  /* === COULEURS PRIMAIRES === */
+  --purple-500:      #7C6FF7;   /* violet primaire — boutons, tags, éléments actifs */
+  --purple-300:      #B8B3FA;   /* violet clair — barres de graphe inactives, donut fill */
+  --purple-100:      #EDEDFF;   /* violet très pâle — hover, badge background */
+  --orange-500:      #F47B4F;   /* orange — arc de timer, indicateurs urgents */
+  --orange-300:      #FAB89A;   /* orange clair */
+  --yellow-500:      #F5A623;   /* jaune — dots d'activité, étoiles */
+  --green-500:       #34C759;   /* vert — tendances positives, badge succès */
+
+  /* === TEXTE === */
+  --text-heading:    #1A1A2E;   /* titres principaux */
+  --text-body:       #3D3D5C;   /* texte courant */
+  --text-muted:      #9999B3;   /* labels secondaires, placeholders */
+  --text-on-dark:    #FFFFFF;   /* texte sur fond sombre */
+  --text-on-dark-muted: rgba(255,255,255,0.55);
+
+  /* === TAGS === */
+  --tag-work-bg:     #E3F0FF;
+  --tag-work-text:   #3B82F6;
+  --tag-personal-bg: #FFF0E3;
+  --tag-personal-text: #F47B4F;
+
+  /* === OMBRES === */
+  --shadow-card:     0 2px 16px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 6px 24px rgba(0, 0, 0, 0.10);
+  --shadow-dark:     0 4px 32px rgba(0, 0, 0, 0.30);
+
+  /* === RAYONS === */
+  --radius-sm:  10px;
+  --radius-md:  18px;
+  --radius-lg:  26px;
+  --radius-xl:  36px;
+  --radius-pill: 9999px;
+
+  /* === ESPACEMENTS === */
+  --pad-card:   24px;
+  --gap-grid:   16px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === COMPOSANTS UTILITAIRES === */
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--pad-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease;
+}
+.card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card-dark {
+  background: var(--bg-card-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--pad-card);
+  box-shadow: var(--shadow-dark);
+  color: var(--text-on-dark);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+.badge-work    { background: var(--tag-work-bg); color: var(--tag-work-text); }
+.badge-success { background: rgba(52,199,89,0.1); color: var(--green-500); }
+.badge-purple  { background: var(--purple-100); color: var(--purple-500); }
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-icon:hover { opacity: 0.85; }
+.btn-icon-ghost { background: rgba(255,255,255,0.12); color: white; }
+.btn-icon-orange { background: var(--orange-500); color: white; }
+.btn-icon-subtle { background: var(--bg-input); color: var(--text-muted); }
