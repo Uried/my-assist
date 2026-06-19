@@ -80,9 +80,12 @@ const Storage = {
     
     if (tableName && typeof AirtableAPI !== 'undefined') {
       try {
-        item.createdAt = new Date().toISOString();
-        const created = await AirtableAPI.create(tableName, item);
-        return created;
+        // Retirer le champ 'id' car Airtable le génère automatiquement
+        const { id, ...airtableItem } = item;
+        airtableItem.createdAt = new Date().toISOString();
+        const created = await AirtableAPI.create(tableName, airtableItem);
+        // Retourner l'item avec l'ID généré par Airtable
+        return { ...item, id: created.id };
       } catch (error) {
         console.error('Error adding to Airtable, falling back to localStorage:', error);
       }
