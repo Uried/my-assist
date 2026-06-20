@@ -8,6 +8,8 @@ const Rapports = {
   CONTACTS_KEY: 'myassist_contacts',
   DOCUMENTS_KEY: 'myassist_documents',
 
+  charts: {}, // Stocker les instances de graphiques
+
   /**
    * Initialiser le module
    */
@@ -46,20 +48,26 @@ const Rapports = {
     document.getElementById('stat-total-contacts').textContent = contacts.length;
     document.getElementById('stat-total-documents').textContent = documents.length;
 
-    // Courriers par statut
-    this.renderCourriersByStatut(courriers);
-
-    // Rendez-vous par statut
-    this.renderRendezvousByStatut(rendezvous);
+    // Graphiques
+    this.renderCourriersChart(courriers);
+    this.renderRendezvousChart(rendezvous);
+    this.renderContactsChart(contacts);
+    this.renderDocumentsChart(documents);
   },
 
   /**
-   * Afficher les courriers par statut
+   * Afficher le graphique des courriers par statut
    * @param {Array} courriers - Liste des courriers
    */
-  renderCourriersByStatut(courriers) {
-    const container = document.getElementById('courriers-by-statut');
-    
+  renderCourriersChart(courriers) {
+    const ctx = document.getElementById('courriers-chart');
+    if (!ctx) return;
+
+    // Détruire le graphique existant s'il y en a un
+    if (this.charts.courriers) {
+      this.charts.courriers.destroy();
+    }
+
     const stats = {
       'reçu': courriers.filter(c => c.statut === 'reçu').length,
       'en cours': courriers.filter(c => c.statut === 'en cours').length,
@@ -67,29 +75,46 @@ const Rapports = {
       'archivé': courriers.filter(c => c.statut === 'archivé').length
     };
 
-    if (courriers.length === 0) {
-      container.innerHTML = '<p class="text-gray-500 text-center py-4">Aucune donnée</p>';
-      return;
-    }
-
-    container.innerHTML = Object.entries(stats).map(([statut, count]) => `
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          ${App.getStatusBadge(statut)}
-          <span class="text-sm text-gray-700 capitalize">${statut}</span>
-        </div>
-        <span class="text-sm font-semibold text-gray-900">${count}</span>
-      </div>
-    `).join('');
+    this.charts.courriers = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(stats),
+        datasets: [{
+          data: Object.values(stats),
+          backgroundColor: [
+            '#7C6FF7',
+            '#F59E0B',
+            '#10B981',
+            '#6B7280'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
   },
 
   /**
-   * Afficher les rendez-vous par statut
+   * Afficher le graphique des rendez-vous par statut
    * @param {Array} rendezvous - Liste des rendez-vous
    */
-  renderRendezvousByStatut(rendezvous) {
-    const container = document.getElementById('rendezvous-by-statut');
-    
+  renderRendezvousChart(rendezvous) {
+    const ctx = document.getElementById('rendezvous-chart');
+    if (!ctx) return;
+
+    // Détruire le graphique existant s'il y en a un
+    if (this.charts.rendezvous) {
+      this.charts.rendezvous.destroy();
+    }
+
     const stats = {
       'prévu': rendezvous.filter(r => r.statut === 'prévu').length,
       'confirmé': rendezvous.filter(r => r.statut === 'confirmé').length,
@@ -97,20 +122,139 @@ const Rapports = {
       'terminé': rendezvous.filter(r => r.statut === 'terminé').length
     };
 
-    if (rendezvous.length === 0) {
-      container.innerHTML = '<p class="text-gray-500 text-center py-4">Aucune donnée</p>';
-      return;
+    this.charts.rendezvous = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(stats),
+        datasets: [{
+          label: 'Nombre de rendez-vous',
+          data: Object.values(stats),
+          backgroundColor: [
+            '#7C6FF7',
+            '#10B981',
+            '#EF4444',
+            '#6B7280'
+          ],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * Afficher le graphique des contacts par type
+   * @param {Array} contacts - Liste des contacts
+   */
+  renderContactsChart(contacts) {
+    const ctx = document.getElementById('contacts-chart');
+    if (!ctx) return;
+
+    // Détruire le graphique existant s'il y en a un
+    if (this.charts.contacts) {
+      this.charts.contacts.destroy();
     }
 
-    container.innerHTML = Object.entries(stats).map(([statut, count]) => `
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          ${App.getStatusBadge(statut)}
-          <span class="text-sm text-gray-700 capitalize">${statut}</span>
-        </div>
-        <span class="text-sm font-semibold text-gray-900">${count}</span>
-      </div>
-    `).join('');
+    const stats = {
+      'client': contacts.filter(c => c.typeContact === 'client').length,
+      'fournisseur': contacts.filter(c => c.typeContact === 'fournisseur').length,
+      'partenaire': contacts.filter(c => c.typeContact === 'partenaire').length,
+      'autre': contacts.filter(c => c.typeContact === 'autre').length
+    };
+
+    this.charts.contacts = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: Object.keys(stats),
+        datasets: [{
+          data: Object.values(stats),
+          backgroundColor: [
+            '#7C6FF7',
+            '#F59E0B',
+            '#10B981',
+            '#6B7280'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * Afficher le graphique des documents par catégorie
+   * @param {Array} documents - Liste des documents
+   */
+  renderDocumentsChart(documents) {
+    const ctx = document.getElementById('documents-chart');
+    if (!ctx) return;
+
+    // Détruire le graphique existant s'il y en a un
+    if (this.charts.documents) {
+      this.charts.documents.destroy();
+    }
+
+    const stats = {
+      'Juridique': documents.filter(d => d.categorie === 'Juridique').length,
+      'Administratif': documents.filter(d => d.categorie === 'Administratif').length,
+      'Commercial': documents.filter(d => d.categorie === 'Commercial').length,
+      'Technique': documents.filter(d => d.categorie === 'Technique').length,
+      'Autre': documents.filter(d => d.categorie === 'Autre').length
+    };
+
+    this.charts.documents = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(stats),
+        datasets: [{
+          label: 'Nombre de documents',
+          data: Object.values(stats),
+          backgroundColor: '#7C6FF7',
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
   },
 
   /**

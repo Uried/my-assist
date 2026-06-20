@@ -138,12 +138,12 @@
                 </div>
 
                 <!-- Stats by Status -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                     <div class="bg-white rounded-[26px] shadow-card">
                         <div class="p-6">
                             <h2 class="text-lg font-semibold text-[#1A1A2E] mb-4">Courriers par statut</h2>
-                            <div id="courriers-by-statut" class="space-y-4">
-                                <p class="text-[#9999B3] text-center py-4">Aucune donnée</p>
+                            <div class="h-64">
+                                <canvas id="courriers-chart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -151,8 +151,29 @@
                     <div class="bg-white rounded-[26px] shadow-card">
                         <div class="p-6">
                             <h2 class="text-lg font-semibold text-[#1A1A2E] mb-4">Rendez-vous par statut</h2>
-                            <div id="rendezvous-by-statut" class="space-y-4">
-                                <p class="text-[#9999B3] text-center py-4">Aucune donnée</p>
+                            <div class="h-64">
+                                <canvas id="rendezvous-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="bg-white rounded-[26px] shadow-card">
+                        <div class="p-6">
+                            <h2 class="text-lg font-semibold text-[#1A1A2E] mb-4">Contacts par type</h2>
+                            <div class="h-64">
+                                <canvas id="contacts-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[26px] shadow-card">
+                        <div class="p-6">
+                            <h2 class="text-lg font-semibold text-[#1A1A2E] mb-4">Documents par catégorie</h2>
+                            <div class="h-64">
+                                <canvas id="documents-chart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -163,6 +184,7 @@
     <script src="assets/js/airtable.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/rapports.js"></script>
     <script>
         Auth.checkAuth();
