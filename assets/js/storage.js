@@ -32,9 +32,12 @@ const Storage = {
     
     if (tableName && typeof AirtableAPI !== 'undefined') {
       try {
+        Loader.show('Chargement des données...');
         const data = await AirtableAPI.getAll(tableName);
+        Loader.hide();
         return data;
       } catch (error) {
+        Loader.hide();
         console.error('Error fetching from Airtable, falling back to localStorage:', error);
         // Fallback vers localStorage
         const data = localStorage.getItem(key);
@@ -80,13 +83,16 @@ const Storage = {
     
     if (tableName && typeof AirtableAPI !== 'undefined') {
       try {
+        Loader.show('Enregistrement...');
         // Retirer le champ 'id' car Airtable le génère automatiquement
         const { id, ...airtableItem } = item;
         airtableItem.createdAt = new Date().toISOString();
         const created = await AirtableAPI.create(tableName, airtableItem);
+        Loader.hide();
         // Retourner l'item avec l'ID généré par Airtable
         return { ...item, id: created.id };
       } catch (error) {
+        Loader.hide();
         console.error('Error adding to Airtable, falling back to localStorage:', error);
       }
     }
