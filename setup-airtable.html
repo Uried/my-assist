@@ -208,8 +208,63 @@
 
         for (const [tableName, fields] of Object.entries(REQUIRED_TABLES)) {
           if (existingTables.includes(tableName)) {
-            html += `<div class="table-card exists"><h3>⏭️ ${tableName}</h3><p>Table existe déjà, ignorée</p></div>`;
-            successCount++;
+            // Vérifier si des champs manquent
+            const existingTable = schemaData.tables.find(t => t.name === tableName);
+            const existingFields = existingTable.fields.map(f => f.name);
+            const missingFields = fields.filter(f => !existingFields.includes(f.name));
+            
+            if (missingFields.length > 0) {
+              // Ajouter les champs manquants
+              try {
+                const tableId = existingTable.id;
+                const updateResponse = await fetch(`https://api.airtable.com/v0/meta/bases/${AT_BASE}/tables/${tableId}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `Bearer ${AT_TOKEN}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    fields: [...existingTable.fields, ...missingFields.map(field => {
+                      const fieldDef = { name: field.name, type: field.type };
+                      
+                      if (field.options) {
+                        fieldDef.options = { choices: field.options.map(opt => ({ name: opt })) };
+                      }
+                      
+                      if (field.type === 'date') {
+                        fieldDef.options = {
+                          dateFormat: { name: 'local' }
+                        };
+                      }
+                      
+                      if (field.type === 'dateTime') {
+                        fieldDef.options = {
+                          dateFormat: { name: 'local' },
+                          timeFormat: { name: '24hour' },
+                          timeZone: 'Europe/Paris'
+                        };
+                      }
+                      
+                      return fieldDef;
+                    })]
+                  })
+                });
+
+                if (updateResponse.ok) {
+                  html += `<div class="table-card updated"><h3>✅ ${tableName}</h3><p>Table mise à jour avec ${missingFields.length} champ(s) manquant(s)</p></div>`;
+                  successCount++;
+                } else {
+                  html += `<div class="table-card error"><h3>❌ ${tableName}</h3><p>Erreur lors de la mise à jour: ${updateResponse.statusText}</p></div>`;
+                  errorCount++;
+                }
+              } catch (error) {
+                html += `<div class="table-card error"><h3>❌ ${tableName}</h3><p>Erreur lors de la mise à jour: ${error.message}</p></div>`;
+                errorCount++;
+              }
+            } else {
+              html += `<div class="table-card exists"><h3>⏭️ ${tableName}</h3><p>Table existe déjà, tous les champs présents</p></div>`;
+              successCount++;
+            }
             continue;
           }
 
